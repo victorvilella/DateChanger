@@ -1,6 +1,8 @@
 <?php
 
-require_once "DataChange.php";
+require __DIR__ . "/vendor/autoload.php";
+
+use DBSellerTask\DataChange;
 
 if(count($argv) !== 4){
     die("São necessários 3 argumentos (Data, operador, valor)");
