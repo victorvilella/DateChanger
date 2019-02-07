@@ -1,5 +1,6 @@
 <?php
 namespace DBSellerTask;
+use \Exception;
 
 class DataChange
 {
@@ -114,17 +115,18 @@ class DataChange
      *
      */
     public function process(){
-        $years = intdiv($this->value, 60*24*30*365);
-        $months = intdiv($this->value, 60*24*30);
+        $months = $this->value % 60*24;
         $days = intdiv($this->value, 60*24);
+        $years = intdiv($this->value, 60*24*365);
         $hours = intdiv($this->value, 60);
         $minutes = $this->value % 60;
 
-        $this->setNewMinute($minutes);
-        $this->setNewHour($hours);
+        $this->setNewYear($years);
         $this->setNewMonth($months);
         $this->setNewDay($days);
-        $this->setNewYear($years);
+        $this->setNewHour($hours);
+        $this->setNewMinute($minutes);
+
         return $this->formatOutputDate();
     }
 
@@ -135,10 +137,18 @@ class DataChange
     private function setNewDay($newDay){
         $sum = $this->day + $newDay;
         $daysMonth = $this->getDaysOnMonth();
-        if($sum > $daysMonth){
-           $this->day = $newDay - $daysMonth;
+        if($this->operator == "+"){
+            if($sum > $daysMonth){
+                $this->day = $newDay - $daysMonth;
+            } else {
+                $this->day = $sum;
+            }
         } else {
-            $this->day = $sum;
+            if($sum > 0){
+
+            }
+            $this->day = $daysMonth - $sum;
+
         }
     }
 
@@ -164,29 +174,38 @@ class DataChange
     }
 
     /**
+     * @param null $month
      * @return int
      */
-    private function getDaysOnMonth(){
-        if(in_array($this->month, $this->m31)){
+    private function getDaysOnMonth($month = null){
+        if(is_null($month)){
+            $month = $this->month;
+        }
+        if(in_array($month, $this->m31)){
             return 31;
-        } elseif (in_array($this->month, $this->m30)){
+        } elseif (in_array($month, $this->m30)){
             return 30;
         } else {
             return 28;
         }
     }
+
+    /**
+     * @param $initial
+     * @param $final
+     */
+    private function getDaysOnIntervalOfMonths(){
+
+    }
+
+    /**
+     * @param $newHour
+     */
     private function setNewHour($newHour){
         if($newHour >= 0){
             $this->hour = ($newHour) % 24;
         } else {
             $this->hour = 23 + ($newHour % 24);
-            $this->day--;
-            if($this->day <= 0){
-                $this->month--;
-                if($this->month <= 0){
-                    $this->year--;
-                }
-            }
         }
     }
 

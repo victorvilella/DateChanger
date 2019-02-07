@@ -5,13 +5,27 @@ use DBSellerTask\DataChange;
 
 class MainTest extends TestCase
 {
+    /**
+     * @test
+     */
     public function sumOneDayTest(){
-        $obj = new DataChange("2000-01-01", "+", 60*24);
-        $this->assertEquals($obj->process(), "2000-01-02 00:00");
+        $obj = new DataChange("01/01/2000", "+", 1440);
+        $this->assertEquals($obj->process(), "02/01/2000 00:00");
     }
 
+    /**
+     * @test
+     */
     public function subtractOneDayTest(){
-        $obj = new DataChange("2000-01-02", "-", 60*24);
-        $this->assertEquals($obj->process(), "2000-01-01 00:00");
+        $obj = new DataChange("02/01/2000", "-", 60*24);
+        $this->assertEquals($obj->process(), "01/01/2000 00:00");
+    }
+
+    /**
+     * @test
+     */
+    public function addOneMonthTest(){
+        $obj = new DataChange("01/01/2000", "+", 60*24*30);
+        $this->assertEquals($obj->process(), "31/01/2000 00:00");
     }
 }
