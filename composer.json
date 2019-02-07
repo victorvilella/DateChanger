@@ -1,6 +1,7 @@
 {
     "name": "victor/data-change",
     "type": "library",
+    "description": "A simple class to operate dates.",
     "license": "MIT",
     "authors": [
         {
@@ -10,10 +11,14 @@
     ],
     "autoload": {
         "classmap": [
-            "src/"
+            "src/",
+            "tests/"
         ]
     },
     "require": {
+        "php": "^7"
+    },
+    "require-dev": {
         "phpunit/phpunit": "^8.0"
     }
 }
