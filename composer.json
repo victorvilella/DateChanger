@@ -1,0 +1,12 @@
+{
+    "name": "victor/data-change",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Victor Vilella",
+            "email": "victor.cbl@gmail.com"
+        }
+    ],
+    "require": {}
+}
