@@ -63,9 +63,9 @@ class DataChange
         $result = preg_match($this->mask_value, $value, $test);
         if(!empty($test)){
             if($this->operator == "+"){
-                $this->value = intval($test[0]);
+                $this->value = abs(intval($test[0]));
             } else {
-                $this->value = intval($test[0]) * -1;
+                $this->value = abs(intval($test[0])) * -1;
             }
         }
         return $result;
