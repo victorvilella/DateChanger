@@ -8,6 +8,9 @@ class DataChange
     private $mask_hour = "/[0-9]{1,3}[:]{1}[0-9]{1,2}/";
     private $mask_value ="/[0-9]{1,}/";
 
+    private $m30 = [4,6,9,11];
+    private $m31 = [1,3,5,7,8,10,12];
+
     private $default_hour = "00:00";
 
     private $day = null;
@@ -110,110 +113,104 @@ class DataChange
      *
      */
     public function process(){
-        $this->handleYear();
-        $this->handleMonth();
-        $this->handleDay();
-        $this->handleHour();
-        $this->handleMinute();
-        return "aaa";
+        $years = intdiv($this->value, 60*24*30*365);
+        $months = intdiv($this->value, 60*24*30);
+        $days = intdiv($this->value, 60*24);
+        $hours = intdiv($this->value, 60);
+        $minutes = $this->value % 60;
+
+        $this->setNewMinute($minutes);
+        $this->setNewHour($hours);
+        $this->setNewMonth($months);
+        $this->setNewDay($days);
+        $this->setNewYear($years);
+        return $this->formatOutputDate();
     }
 
-    /**
-     *
-     */
-    private function handleMonth(){
-        $m30 = [4,6,9,11];
-        $m31 = [1,3,5,7,8,10,12];
-        $newMonth = $this->month;
-        $aux = $this->value;
-        if($this->operator == "+"){
-            for($i = $this->month; $aux > 0 ; $i++){
-                if(in_array($i, $m30)){
-                    $aux -= 43200;
-                } elseif (in_array($i, $m31)){
-                    $aux -= 44640;
-                } else{
-                    $aux -= 40320;
-                }
-                $newMonth = $i + 1;
-                if($newMonth > 12){
-                    $this->year++;
-                    $newMonth = 1;
-                    $i = 1;
-                }
-            }
-            $this->month = $newMonth;
+    private function setNewYear($newYear){
+        $this->year += $newYear;
+    }
+
+    private function setNewDay($newDay){
+        $sum = $this->day + $newDay;
+        $daysMonth = $this->getDaysOnMonth();
+        if($sum > $daysMonth){
+           $this->day = $newDay - $daysMonth;
         } else {
-            for($i = $this->month; $aux > 0 ; $i--){
-                if(in_array($i, $m30)){
-                    $aux -= 43200;
-                } elseif (in_array($i, $m31)){
-                    $aux -= 44640;
-                } else{
-                    $aux -= 40320;
-                }
-                $newMonth = $i - 1;
-                if($newMonth < 1){
-                    $this->year--;
-                    $newMonth = 12;
-                    $i = 12;
-                }
-            }
-            $this->month = $newMonth;
+            $this->day = $sum;
         }
     }
 
     /**
-     *
+     * @param $newMonth
      */
-    private function handleMinute(){
-        $sum = $this->minute + $this->value;
-        if($sum >= 0 && $sum <= 59){
-            $this->minute = $sum;
-        } else {
-            $hour = intdiv($sum, 60);
-            $minute = $sum % 60;
-            if($hour >= 0){
-                $this->hour = $hour;
-                $this->minute = $minute;
+    private function setNewMonth($newMonth){
+        if($this->day <= 0){
+            if(in_array($this->month, $this->m31)){
+                $this->day = 31;
+            } elseif (in_array($this->month, $this->m30)){
+                $this->day = 30;
             } else {
-                $this->hour = 24 + $hour;
-                $this->minute = 60 + $minute;
+                $this->day= 28;
+            }
+        }
+        $sum = $newMonth + $this->month;
+        if($sum > 12){
+            $this->month = $sum - $newMonth;
+        } else {
+            $this->month = $sum;
+        }
+    }
+
+    /**
+     * @return int
+     */
+    private function getDaysOnMonth(){
+        if(in_array($this->month, $this->m31)){
+            return 31;
+        } elseif (in_array($this->month, $this->m30)){
+            return 30;
+        } else {
+            return 28;
+        }
+    }
+    private function setNewHour($newHour){
+        if($newHour >= 0){
+            $this->hour = ($newHour) % 24;
+        } else {
+            $this->hour = 23 + ($newHour % 24);
+            $this->day--;
+            if($this->day <= 0){
+                $this->month--;
+                if($this->month <= 0){
+                    $this->year--;
+                }
             }
         }
     }
 
-    /**
-     *
-     */
-    private function handleHour(){
-        $sum = $this->hour + intdiv($this->value , 60);
-        if($sum >= 0 && $sum <= 23){
-            $this->hour = $sum;
+    private function setNewMinute($newMinute){
+        if($newMinute >= 0){
+            $this->minute = $newMinute % 60;
         } else {
-            $day = intdiv($sum, 24);
-            $hour = $sum % 24;
+            $this->minute = 60 + ($newMinute % 60);
+            $this->hour--;
         }
-    }
-
-    /**
-     *
-     */
-    private function handleDay(){
-
-    }
-
-    /**
-     *
-     */
-    private function handleYear(){
-        $this->year += intdiv($this->year, 525600);
     }
 
     /**
      *
      */
     private function formatOutputDate(){
+        return
+            $this->padding($this->day) . "/" .
+            $this->padding($this->month) . "/" .
+            $this->padding($this->year) . " ".
+            $this->padding($this->hour) . ":" .
+            $this->padding($this->minute);
+    }
 
+    private function padding($number){
+        return str_pad($number, 2, '0', STR_PAD_LEFT);
     }
 }
